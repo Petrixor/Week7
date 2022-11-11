@@ -297,3 +297,23 @@ print(paste('Accuracy',1-binomial_classification_error))
 
 ```
 
+```{r}
+cleaned_topic_docs <- tm_map(topic_docs, tolower)
+cleaned_topic_docs <- tm_map(cleaned_topic_docs, removePunctuation)
+cleaned_topic_docs <- tm_map(cleaned_topic_docs, removeWords, stopwords('en'))
+topic_dtm <- DocumentTermMatrix(cleaned_topic_docs)
+findFreqTerms(
+topic_dtm,
+lowfreq=100
+)
+```
+
+```{r}
+findAssocs(
+topic_dtm,
+'software',
+corlimit=0.75 # the correlation limit (between 0 and 1)
+)
+
+```
+

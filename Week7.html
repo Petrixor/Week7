@@ -363,12 +363,470 @@ display: none;
 </div>
 
 
-<pre class="r"><code>topic_docs &lt;- Corpus(
+<pre class="r"><code>#unzip(&quot;20news-data.zip&quot;)
+topic_docs &lt;- Corpus(
 DirSource(
 &#39;20news-train/comp.graphics&#39;,
 encoding=&#39;UTF-8&#39;  # specifies the text encoding the files are saved with
   )
 )</code></pre>
+<pre class="r"><code>summary(topic_docs[1:5])</code></pre>
+<pre><code>##       Length Class             Mode
+## 37261 2      PlainTextDocument list
+## 37913 2      PlainTextDocument list
+## 37914 2      PlainTextDocument list
+## 37915 2      PlainTextDocument list
+## 37916 2      PlainTextDocument list</code></pre>
+<pre class="r"><code>inspect(topic_docs[[1]])</code></pre>
+<pre><code>## &lt;&lt;PlainTextDocument&gt;&gt;
+## Metadata:  7
+## Content:  chars: 2337
+## 
+## Subject: CALL FOR PRESENTATIONS: Navy SciViz/VR Seminar
+## CALL FOR PRESENTATIONS
+## NAVY SCIENTIFIC VISUALIZATION AND VIRTUAL REALITY SEMINAR
+## Tuesday, June 22, 1993
+## Carderock Division, Naval Surface Warfare Center
+## (formerly the David Taylor Research Center)
+## Bethesda, Maryland
+## SPONSOR: NESS (Navy Engineering Software System) is sponsoring a
+## one-day Navy Scientific Visualization and Virtual Reality Seminar.
+## The purpose of the seminar is to present and exchange information for
+## Navy-related scientific visualization and virtual reality programs,
+## research, developments, and applications.
+## PRESENTATIONS: Presentations are solicited on all aspects of
+## Navy-related scientific visualization and virtual reality.  All
+## current work, works-in-progress, and proposed work by Navy
+## organizations will be considered.  Four types of presentations are
+## available.
+## 1. Regular presentation: 20-30 minutes in length
+## 2. Short presentation: 10 minutes in length
+## 3. Video presentation: a stand-alone videotape (author need not
+## attend the seminar)
+## 4. Scientific visualization or virtual reality demonstration (BYOH)
+## Accepted presentations will not be published in any proceedings,
+## however, viewgraphs and other materials will be reproduced for
+## seminar attendees.
+## ABSTRACTS: Authors should submit a one page abstract and/or videotape to:
+## Robert Lipman
+## Naval Surface Warfare Center, Carderock Division
+## Code 2042
+## Bethesda, Maryland  20084-5000
+## VOICE (301) 227-3618;  FAX (301) 227-5753
+## E-MAIL  lipman@oasys.dt.navy.mil
+## Authors should include the type of presentation, their affiliations,
+## addresses, telephone and FAX numbers, and addresses.  Multi-author
+## papers should designate one point of contact.
+## DEADLINES: The abstact submission deadline is April 30, 1993.
+## Notification of acceptance will be sent by May 14, 1993.
+## Materials for reproduction must be received by June 1, 1993.
+## For further information, contact Robert Lipman at the above address.
+## PLEASE DISTRIBUTE AS WIDELY AS POSSIBLE, THANKS.
+## Robert Lipman                     | Internet: lipman@oasys.dt.navy.mil
+## David Taylor Model Basin - CDNSWC |       or: lip@ocean.dt.navy.mil
+## Computational Signatures and      | Voicenet: (301) 227-3618
+## Structures Group, Code 2042    | Factsnet: (301) 227-5753
+## Bethesda, Maryland  20084-5000    | Phishnet: stockings@long.legs
+## The sixth sick shiek&#39;s sixth sheep&#39;s sick.</code></pre>
+<pre class="r"><code>topic_docs[[1]]$content</code></pre>
+<pre><code>## [1] &quot;Subject: CALL FOR PRESENTATIONS: Navy SciViz/VR Seminar\nCALL FOR PRESENTATIONS\nNAVY SCIENTIFIC VISUALIZATION AND VIRTUAL REALITY SEMINAR\nTuesday, June 22, 1993\nCarderock Division, Naval Surface Warfare Center\n(formerly the David Taylor Research Center)\nBethesda, Maryland\nSPONSOR: NESS (Navy Engineering Software System) is sponsoring a\none-day Navy Scientific Visualization and Virtual Reality Seminar.\nThe purpose of the seminar is to present and exchange information for\nNavy-related scientific visualization and virtual reality programs,\nresearch, developments, and applications.\nPRESENTATIONS: Presentations are solicited on all aspects of\nNavy-related scientific visualization and virtual reality.  All\ncurrent work, works-in-progress, and proposed work by Navy\norganizations will be considered.  Four types of presentations are\navailable.\n1. Regular presentation: 20-30 minutes in length\n2. Short presentation: 10 minutes in length\n3. Video presentation: a stand-alone videotape (author need not\nattend the seminar)\n4. Scientific visualization or virtual reality demonstration (BYOH)\nAccepted presentations will not be published in any proceedings,\nhowever, viewgraphs and other materials will be reproduced for\nseminar attendees.\nABSTRACTS: Authors should submit a one page abstract and/or videotape to:\nRobert Lipman\nNaval Surface Warfare Center, Carderock Division\nCode 2042\nBethesda, Maryland  20084-5000\nVOICE (301) 227-3618;  FAX (301) 227-5753\nE-MAIL  lipman@oasys.dt.navy.mil\nAuthors should include the type of presentation, their affiliations,\naddresses, telephone and FAX numbers, and addresses.  Multi-author\npapers should designate one point of contact.\nDEADLINES: The abstact submission deadline is April 30, 1993.\nNotification of acceptance will be sent by May 14, 1993.\nMaterials for reproduction must be received by June 1, 1993.\nFor further information, contact Robert Lipman at the above address.\nPLEASE DISTRIBUTE AS WIDELY AS POSSIBLE, THANKS.\nRobert Lipman                     | Internet: lipman@oasys.dt.navy.mil\nDavid Taylor Model Basin - CDNSWC |       or: lip@ocean.dt.navy.mil\nComputational Signatures and      | Voicenet: (301) 227-3618\nStructures Group, Code 2042    | Factsnet: (301) 227-5753\nBethesda, Maryland  20084-5000    | Phishnet: stockings@long.legs\nThe sixth sick shiek&#39;s sixth sheep&#39;s sick.&quot;</code></pre>
+<pre class="r"><code>topic_2_docs &lt;- Corpus(
+DirSource(
+&#39;20news-train/rec.motorcycles&#39;,
+encoding=&#39;UTF-8&#39; # specifies the text encoding the files are saved with
+)
+  )</code></pre>
+<pre class="r"><code>binomial_docs &lt;- c(
+as.list(topic_docs), # we need to convert the Corpus to a list to combine them properly
+as.list(topic_2_docs)
+)</code></pre>
+<pre class="r"><code>labels_1 &lt;- replicate(length(topic_docs), &#39;comp.graphics&#39;)
+labels_2 &lt;- replicate(length(topic_2_docs), &#39;rec.motorcycles&#39;)
+binomial_labels &lt;- c(labels_1, labels_2)</code></pre>
+<pre class="r"><code>length(binomial_docs) == length(binomial_labels)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>example_doc &lt;- binomial_docs[[&quot;38487&quot;]]
+print(example_doc)</code></pre>
+<pre><code>## [1] &quot;Subject: WANTED: Multi-page GIF!!\nHi!...\nI am searching for packages that could handle Multi-page GIF\nfiles...\nAre there any on some ftp servers?\nI&#39;ll appreciate one which works on PC (either on DOS or Windows 3.0/3.1).\nBut any package works on Unix will be OK..\nThanks in advance...&quot;</code></pre>
+<pre class="r"><code>tokens &lt;- Boost_tokenizer(example_doc)
+summary(tokens)</code></pre>
+<pre><code>##    Length     Class      Mode 
+##        48 character character</code></pre>
+<pre class="r"><code>print(tokens)</code></pre>
+<pre><code>##  [1] &quot;Subject:&quot;   &quot;WANTED:&quot;    &quot;Multi-page&quot; &quot;GIF!!&quot;      &quot;Hi!...&quot;    
+##  [6] &quot;I&quot;          &quot;am&quot;         &quot;searching&quot;  &quot;for&quot;        &quot;packages&quot;  
+## [11] &quot;that&quot;       &quot;could&quot;      &quot;handle&quot;     &quot;Multi-page&quot; &quot;GIF&quot;       
+## [16] &quot;files...&quot;   &quot;Are&quot;        &quot;there&quot;      &quot;any&quot;        &quot;on&quot;        
+## [21] &quot;some&quot;       &quot;ftp&quot;        &quot;servers?&quot;   &quot;I&#39;ll&quot;       &quot;appreciate&quot;
+## [26] &quot;one&quot;        &quot;which&quot;      &quot;works&quot;      &quot;on&quot;         &quot;PC&quot;        
+## [31] &quot;(either&quot;    &quot;on&quot;         &quot;DOS&quot;        &quot;or&quot;         &quot;Windows&quot;   
+## [36] &quot;3.0/3.1).&quot;  &quot;But&quot;        &quot;any&quot;        &quot;package&quot;    &quot;works&quot;     
+## [41] &quot;on&quot;         &quot;Unix&quot;       &quot;will&quot;       &quot;be&quot;         &quot;OK..&quot;      
+## [46] &quot;Thanks&quot;     &quot;in&quot;         &quot;advance...&quot;</code></pre>
+<pre class="r"><code>tokens2 &lt;- MC_tokenizer(example_doc)
+summary(tokens2)</code></pre>
+<pre><code>##    Length     Class      Mode 
+##        50 character character</code></pre>
+<pre class="r"><code>print(tokens2)</code></pre>
+<pre><code>##  [1] &quot;Subject&quot;    &quot;WANTED&quot;     &quot;Multi&quot;      &quot;page&quot;       &quot;GIF&quot;       
+##  [6] &quot;Hi&quot;         &quot;I&quot;          &quot;am&quot;         &quot;searching&quot;  &quot;for&quot;       
+## [11] &quot;packages&quot;   &quot;that&quot;       &quot;could&quot;      &quot;handle&quot;     &quot;Multi&quot;     
+## [16] &quot;page&quot;       &quot;GIF&quot;        &quot;files&quot;      &quot;Are&quot;        &quot;there&quot;     
+## [21] &quot;any&quot;        &quot;on&quot;         &quot;some&quot;       &quot;ftp&quot;        &quot;servers&quot;   
+## [26] &quot;I&quot;          &quot;ll&quot;         &quot;appreciate&quot; &quot;one&quot;        &quot;which&quot;     
+## [31] &quot;works&quot;      &quot;on&quot;         &quot;PC&quot;         &quot;either&quot;     &quot;on&quot;        
+## [36] &quot;DOS&quot;        &quot;or&quot;         &quot;Windows&quot;    &quot;But&quot;        &quot;any&quot;       
+## [41] &quot;package&quot;    &quot;works&quot;      &quot;on&quot;         &quot;Unix&quot;       &quot;will&quot;      
+## [46] &quot;be&quot;         &quot;OK&quot;         &quot;Thanks&quot;     &quot;in&quot;         &quot;advance&quot;</code></pre>
+<pre class="r"><code>removePunctuation(example_doc)</code></pre>
+<pre><code>## [1] &quot;Subject WANTED Multipage GIF\nHi\nI am searching for packages that could handle Multipage GIF\nfiles\nAre there any on some ftp servers\nIll appreciate one which works on PC either on DOS or Windows 3031\nBut any package works on Unix will be OK\nThanks in advance&quot;</code></pre>
+<pre class="r"><code>removePunctuation(tokens)</code></pre>
+<pre><code>##  [1] &quot;Subject&quot;    &quot;WANTED&quot;     &quot;Multipage&quot;  &quot;GIF&quot;        &quot;Hi&quot;        
+##  [6] &quot;I&quot;          &quot;am&quot;         &quot;searching&quot;  &quot;for&quot;        &quot;packages&quot;  
+## [11] &quot;that&quot;       &quot;could&quot;      &quot;handle&quot;     &quot;Multipage&quot;  &quot;GIF&quot;       
+## [16] &quot;files&quot;      &quot;Are&quot;        &quot;there&quot;      &quot;any&quot;        &quot;on&quot;        
+## [21] &quot;some&quot;       &quot;ftp&quot;        &quot;servers&quot;    &quot;Ill&quot;        &quot;appreciate&quot;
+## [26] &quot;one&quot;        &quot;which&quot;      &quot;works&quot;      &quot;on&quot;         &quot;PC&quot;        
+## [31] &quot;either&quot;     &quot;on&quot;         &quot;DOS&quot;        &quot;or&quot;         &quot;Windows&quot;   
+## [36] &quot;3031&quot;       &quot;But&quot;        &quot;any&quot;        &quot;package&quot;    &quot;works&quot;     
+## [41] &quot;on&quot;         &quot;Unix&quot;       &quot;will&quot;       &quot;be&quot;         &quot;OK&quot;        
+## [46] &quot;Thanks&quot;     &quot;in&quot;         &quot;advance&quot;</code></pre>
+<pre class="r"><code>stops &lt;- stopwords(&#39;en&#39;)
+print(stops)</code></pre>
+<pre><code>##   [1] &quot;i&quot;          &quot;me&quot;         &quot;my&quot;         &quot;myself&quot;     &quot;we&quot;        
+##   [6] &quot;our&quot;        &quot;ours&quot;       &quot;ourselves&quot;  &quot;you&quot;        &quot;your&quot;      
+##  [11] &quot;yours&quot;      &quot;yourself&quot;   &quot;yourselves&quot; &quot;he&quot;         &quot;him&quot;       
+##  [16] &quot;his&quot;        &quot;himself&quot;    &quot;she&quot;        &quot;her&quot;        &quot;hers&quot;      
+##  [21] &quot;herself&quot;    &quot;it&quot;         &quot;its&quot;        &quot;itself&quot;     &quot;they&quot;      
+##  [26] &quot;them&quot;       &quot;their&quot;      &quot;theirs&quot;     &quot;themselves&quot; &quot;what&quot;      
+##  [31] &quot;which&quot;      &quot;who&quot;        &quot;whom&quot;       &quot;this&quot;       &quot;that&quot;      
+##  [36] &quot;these&quot;      &quot;those&quot;      &quot;am&quot;         &quot;is&quot;         &quot;are&quot;       
+##  [41] &quot;was&quot;        &quot;were&quot;       &quot;be&quot;         &quot;been&quot;       &quot;being&quot;     
+##  [46] &quot;have&quot;       &quot;has&quot;        &quot;had&quot;        &quot;having&quot;     &quot;do&quot;        
+##  [51] &quot;does&quot;       &quot;did&quot;        &quot;doing&quot;      &quot;would&quot;      &quot;should&quot;    
+##  [56] &quot;could&quot;      &quot;ought&quot;      &quot;i&#39;m&quot;        &quot;you&#39;re&quot;     &quot;he&#39;s&quot;      
+##  [61] &quot;she&#39;s&quot;      &quot;it&#39;s&quot;       &quot;we&#39;re&quot;      &quot;they&#39;re&quot;    &quot;i&#39;ve&quot;      
+##  [66] &quot;you&#39;ve&quot;     &quot;we&#39;ve&quot;      &quot;they&#39;ve&quot;    &quot;i&#39;d&quot;        &quot;you&#39;d&quot;     
+##  [71] &quot;he&#39;d&quot;       &quot;she&#39;d&quot;      &quot;we&#39;d&quot;       &quot;they&#39;d&quot;     &quot;i&#39;ll&quot;      
+##  [76] &quot;you&#39;ll&quot;     &quot;he&#39;ll&quot;      &quot;she&#39;ll&quot;     &quot;we&#39;ll&quot;      &quot;they&#39;ll&quot;   
+##  [81] &quot;isn&#39;t&quot;      &quot;aren&#39;t&quot;     &quot;wasn&#39;t&quot;     &quot;weren&#39;t&quot;    &quot;hasn&#39;t&quot;    
+##  [86] &quot;haven&#39;t&quot;    &quot;hadn&#39;t&quot;     &quot;doesn&#39;t&quot;    &quot;don&#39;t&quot;      &quot;didn&#39;t&quot;    
+##  [91] &quot;won&#39;t&quot;      &quot;wouldn&#39;t&quot;   &quot;shan&#39;t&quot;     &quot;shouldn&#39;t&quot;  &quot;can&#39;t&quot;     
+##  [96] &quot;cannot&quot;     &quot;couldn&#39;t&quot;   &quot;mustn&#39;t&quot;    &quot;let&#39;s&quot;      &quot;that&#39;s&quot;    
+## [101] &quot;who&#39;s&quot;      &quot;what&#39;s&quot;     &quot;here&#39;s&quot;     &quot;there&#39;s&quot;    &quot;when&#39;s&quot;    
+## [106] &quot;where&#39;s&quot;    &quot;why&#39;s&quot;      &quot;how&#39;s&quot;      &quot;a&quot;          &quot;an&quot;        
+## [111] &quot;the&quot;        &quot;and&quot;        &quot;but&quot;        &quot;if&quot;         &quot;or&quot;        
+## [116] &quot;because&quot;    &quot;as&quot;         &quot;until&quot;      &quot;while&quot;      &quot;of&quot;        
+## [121] &quot;at&quot;         &quot;by&quot;         &quot;for&quot;        &quot;with&quot;       &quot;about&quot;     
+## [126] &quot;against&quot;    &quot;between&quot;    &quot;into&quot;       &quot;through&quot;    &quot;during&quot;    
+## [131] &quot;before&quot;     &quot;after&quot;      &quot;above&quot;      &quot;below&quot;      &quot;to&quot;        
+## [136] &quot;from&quot;       &quot;up&quot;         &quot;down&quot;       &quot;in&quot;         &quot;out&quot;       
+## [141] &quot;on&quot;         &quot;off&quot;        &quot;over&quot;       &quot;under&quot;      &quot;again&quot;     
+## [146] &quot;further&quot;    &quot;then&quot;       &quot;once&quot;       &quot;here&quot;       &quot;there&quot;     
+## [151] &quot;when&quot;       &quot;where&quot;      &quot;why&quot;        &quot;how&quot;        &quot;all&quot;       
+## [156] &quot;any&quot;        &quot;both&quot;       &quot;each&quot;       &quot;few&quot;        &quot;more&quot;      
+## [161] &quot;most&quot;       &quot;other&quot;      &quot;some&quot;       &quot;such&quot;       &quot;no&quot;        
+## [166] &quot;nor&quot;        &quot;not&quot;        &quot;only&quot;       &quot;own&quot;        &quot;same&quot;      
+## [171] &quot;so&quot;         &quot;than&quot;       &quot;too&quot;        &quot;very&quot;</code></pre>
+<pre class="r"><code>removeWords(example_doc, stops)</code></pre>
+<pre><code>## [1] &quot;Subject: WANTED: Multi-page GIF!!\nHi!...\nI  searching  packages   handle Multi-page GIF\nfiles...\nAre     ftp servers?\nI&#39;ll appreciate one  works  PC (either  DOS  Windows 3.0/3.1).\nBut  package works  Unix will  OK..\nThanks  advance...&quot;</code></pre>
+<pre class="r"><code>tolower(example_doc)</code></pre>
+<pre><code>## [1] &quot;subject: wanted: multi-page gif!!\nhi!...\ni am searching for packages that could handle multi-page gif\nfiles...\nare there any on some ftp servers?\ni&#39;ll appreciate one which works on pc (either on dos or windows 3.0/3.1).\nbut any package works on unix will be ok..\nthanks in advance...&quot;</code></pre>
+<pre class="r"><code>removeWords(
+tolower(example_doc),
+stops
+)</code></pre>
+<pre><code>## [1] &quot;subject: wanted: multi-page gif!!\nhi!...\n  searching  packages   handle multi-page gif\nfiles...\n     ftp servers?\n appreciate one  works  pc (either  dos  windows 3.0/3.1).\n  package works  unix will  ok..\nthanks  advance...&quot;</code></pre>
+<pre class="r"><code>removeWords(tokens, stops)</code></pre>
+<pre><code>##  [1] &quot;Subject:&quot;   &quot;WANTED:&quot;    &quot;Multi-page&quot; &quot;GIF!!&quot;      &quot;Hi!...&quot;    
+##  [6] &quot;I&quot;          &quot;&quot;           &quot;searching&quot;  &quot;&quot;           &quot;packages&quot;  
+## [11] &quot;&quot;           &quot;&quot;           &quot;handle&quot;     &quot;Multi-page&quot; &quot;GIF&quot;       
+## [16] &quot;files...&quot;   &quot;Are&quot;        &quot;&quot;           &quot;&quot;           &quot;&quot;          
+## [21] &quot;&quot;           &quot;ftp&quot;        &quot;servers?&quot;   &quot;I&#39;ll&quot;       &quot;appreciate&quot;
+## [26] &quot;one&quot;        &quot;&quot;           &quot;works&quot;      &quot;&quot;           &quot;PC&quot;        
+## [31] &quot;(either&quot;    &quot;&quot;           &quot;DOS&quot;        &quot;&quot;           &quot;Windows&quot;   
+## [36] &quot;3.0/3.1).&quot;  &quot;But&quot;        &quot;&quot;           &quot;package&quot;    &quot;works&quot;     
+## [41] &quot;&quot;           &quot;Unix&quot;       &quot;will&quot;       &quot;&quot;           &quot;OK..&quot;      
+## [46] &quot;Thanks&quot;     &quot;&quot;           &quot;advance...&quot;</code></pre>
+<pre class="r"><code>stemDocument(example_doc)</code></pre>
+<pre><code>## [1] &quot;Subject: WANTED: Multi-pag GIF!! Hi!... I am search for packag that could handl Multi-pag GIF files... Are there ani on some ftp servers? I&#39;ll appreci one which work on PC (either on DOS or Window 3.0/3.1). But ani packag work on Unix will be OK.. Thank in advance...&quot;</code></pre>
+<pre class="r"><code>library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>new_example_doc &lt;- example_doc %&gt;% removePunctuation() %&gt;% tolower()
+new_example_doc &lt;- removeWords(new_example_doc, stops)
+gsub(&quot;[\r\n]&quot;, &quot; &quot;, new_example_doc)</code></pre>
+<pre><code>## [1] &quot;subject wanted multipage gif hi   searching  packages   handle multipage gif files      ftp servers ill appreciate one  works  pc either  dos  windows 3031   package works  unix will  ok thanks  advance&quot;</code></pre>
+<pre class="r"><code>binomial_docs &lt;- Corpus(VectorSource(binomial_docs))
+binomial_docs</code></pre>
+<pre><code>## &lt;&lt;SimpleCorpus&gt;&gt;
+## Metadata:  corpus specific: 1, document level (indexed): 0
+## Content:  documents: 1182</code></pre>
+<pre class="r"><code>cleaned_binomial_docs &lt;- tm_map(
+binomial_docs, # the collection of documents to process
+removeWords, # the function to apply to each document
+stopwords(&#39;en&#39;) # any additional arguments to pass to the function being called
+)</code></pre>
+<pre><code>## Warning in tm_map.SimpleCorpus(binomial_docs, removeWords, stopwords(&quot;en&quot;)):
+## transformation drops documents</code></pre>
+<pre class="r"><code>#We can use this, then, to create a fully preprocessed copy of all of our documents.
+# Start with lowercasing
+cleaned_binomial_docs &lt;- tm_map(
+binomial_docs,
+tolower
+)</code></pre>
+<pre><code>## Warning in tm_map.SimpleCorpus(binomial_docs, tolower): transformation drops
+## documents</code></pre>
+<pre class="r"><code># Then remove punctuation
+cleaned_binomial_docs &lt;- tm_map(
+cleaned_binomial_docs, # we want to stack on top of the previous preprocessing!
+removePunctuation
+)</code></pre>
+<pre><code>## Warning in tm_map.SimpleCorpus(cleaned_binomial_docs, removePunctuation):
+## transformation drops documents</code></pre>
+<pre class="r"><code># Then remove stopwords
+cleaned_binomial_docs &lt;- tm_map(
+cleaned_binomial_docs,
+removeWords,
+stopwords(&#39;en&#39;)
+)</code></pre>
+<pre><code>## Warning in tm_map.SimpleCorpus(cleaned_binomial_docs, removeWords,
+## stopwords(&quot;en&quot;)): transformation drops documents</code></pre>
+<pre class="r"><code># And finally stem
+cleaned_binomial_docs &lt;- tm_map(
+cleaned_binomial_docs,
+stemDocument
+)</code></pre>
+<pre><code>## Warning in tm_map.SimpleCorpus(cleaned_binomial_docs, stemDocument):
+## transformation drops documents</code></pre>
+<pre class="r"><code>cleaned_binomial_docs</code></pre>
+<pre><code>## &lt;&lt;SimpleCorpus&gt;&gt;
+## Metadata:  corpus specific: 1, document level (indexed): 0
+## Content:  documents: 1182</code></pre>
+<pre class="r"><code>binomial_dtm &lt;- DocumentTermMatrix(
+cleaned_binomial_docs
+)
+binomial_dtm</code></pre>
+<pre><code>## &lt;&lt;DocumentTermMatrix (documents: 1182, terms: 16953)&gt;&gt;
+## Non-/sparse entries: 91256/19947190
+## Sparsity           : 100%
+## Maximal term length: 60
+## Weighting          : term frequency (tf)</code></pre>
+<pre class="r"><code>inspect(binomial_dtm[1:3,])</code></pre>
+<pre><code>## &lt;&lt;DocumentTermMatrix (documents: 3, terms: 16953)&gt;&gt;
+## Non-/sparse entries: 268/50591
+## Sparsity           : 99%
+## Maximal term length: 60
+## Weighting          : term frequency (tf)
+## Sample             :
+##     Terms
+## Docs 1993 navi present realiti scientif seminar virtual visual will work
+##    1    4    5      11       5        5       6       5      5    4    2
+##    2    0    0       0       0        0       0       0      0    0    1
+##    3    0    0       0       0        0       0       0      0    1    2</code></pre>
+<pre class="r"><code>doc_lengths &lt;- lapply( # applies a function across each element of a list
+as.list(cleaned_binomial_docs),
+nchar # count the length of a string
+)
+doc_lengths &lt;- unlist(doc_lengths) # get rid of the structure that lapply() creates
+quantile(doc_lengths)</code></pre>
+<pre><code>##       0%      25%      50%      75%     100% 
+##    17.00   296.50   483.00   743.25 39482.00</code></pre>
+<pre class="r"><code>binomial_dtm_binary &lt;- DocumentTermMatrix(
+cleaned_binomial_docs,
+control=list(
+weighting=weightBin
+  )
+)</code></pre>
+<pre><code>## Warning in TermDocumentMatrix.SimpleCorpus(x, control): custom functions are
+## ignored</code></pre>
+<pre class="r"><code>inspect(binomial_dtm_binary[1:3,])</code></pre>
+<pre><code>## &lt;&lt;DocumentTermMatrix (documents: 3, terms: 16953)&gt;&gt;
+## Non-/sparse entries: 268/50591
+## Sparsity           : 99%
+## Maximal term length: 60
+## Weighting          : binary (bin)
+## Sample             :
+##     Terms
+## Docs 1993 200845000 2030 avail easi pleas someon subject will work
+##    1    1         1    1     1    0     1      0       1    1    1
+##    2    0         0    0     0    1     0      1       1    0    1
+##    3    0         0    0     1    1     1      1       1    1    1</code></pre>
+<pre class="r"><code>binomial_dtm_tfidf &lt;- DocumentTermMatrix(
+cleaned_binomial_docs,
+control=list(
+weighting=weightTfIdf
+  )
+)</code></pre>
+<pre><code>## Warning in TermDocumentMatrix.SimpleCorpus(x, control): custom functions are
+## ignored</code></pre>
+<pre class="r"><code>inspect(binomial_dtm_tfidf[1:3,])</code></pre>
+<pre><code>## &lt;&lt;DocumentTermMatrix (documents: 3, terms: 16953)&gt;&gt;
+## Non-/sparse entries: 265/50594
+## Sparsity           : 99%
+## Maximal term length: 60
+## Weighting          : term frequency - inverse document frequency (normalized) (tf-idf)
+## Sample             :
+##     Terms
+## Docs   2vector   5757477       619     diego  function      plot   present
+##    1 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.2449671
+##    2 0.1890188 0.1890188 0.3039635 0.2669265 0.2844195 0.3230387 0.0000000
+##    3 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000
+##     Terms
+## Docs       san   seminar      valu
+##    1 0.0000000 0.2228149 0.0000000
+##    2 0.1963009 0.0000000 0.2019306
+##    3 0.0000000 0.0000000 0.0000000</code></pre>
+<pre class="r"><code>removeSparseTerms(binomial_dtm, 0.98)</code></pre>
+<pre><code>## &lt;&lt;DocumentTermMatrix (documents: 1182, terms: 733)&gt;&gt;
+## Non-/sparse entries: 46930/819476
+## Sparsity           : 95%
+## Maximal term length: 18
+## Weighting          : term frequency (tf)</code></pre>
+<pre class="r"><code>removeSparseTerms(binomial_dtm, 0.994)</code></pre>
+<pre><code>## &lt;&lt;DocumentTermMatrix (documents: 1182, terms: 2082)&gt;&gt;
+## Non-/sparse entries: 64702/2396222
+## Sparsity           : 97%
+## Maximal term length: 30
+## Weighting          : term frequency (tf)</code></pre>
+<pre class="r"><code>observed_vocabulary &lt;- unlist(binomial_dtm$dimnames)
+
+binomial_train_dtm &lt;- DocumentTermMatrix(cleaned_binomial_docs,control=list(dictionary=observed_vocabulary))
+
+binomial_train_labels &lt;- (binomial_labels == &#39;comp.graphics&#39;)*1
+
+binomial_model &lt;- glmnet(binomial_train_dtm,binomial_train_labels,family=&#39;binomial&#39;)</code></pre>
+<pre class="r"><code>topic_1_test_docs &lt;- Corpus(
+DirSource(&#39;20news-test/comp.graphics&#39;,
+encoding=&#39;UTF-8&#39;))</code></pre>
+<pre class="r"><code>topic_2_test_docs &lt;-Corpus(DirSource(&#39;20news-test/rec.motorcycles&#39;,encoding=&#39;UTF-8&#39;))
+
+binomial_test_docs &lt;-c(as.list(topic_1_test_docs),as.list(topic_2_test_docs))
+
+binomial_test_docs &lt;- Corpus(VectorSource(binomial_test_docs))</code></pre>
+<pre class="r"><code>labels_test_1 &lt;- replicate(length(topic_1_test_docs),&#39;comp.graphics&#39;)
+
+labels_test_2 &lt;- replicate(length(topic_2_test_docs),&#39;rec.motorcycle&#39;)</code></pre>
+<pre class="r"><code>binomial_test_labels &lt;- c(labels_test_1, labels_test_2)
+
+cleaned_binomial_test_docs &lt;- tm_map(binomial_test_docs, tolower)</code></pre>
+<pre><code>## Warning in tm_map.SimpleCorpus(binomial_test_docs, tolower): transformation
+## drops documents</code></pre>
+<pre class="r"><code>cleaned_binomial_test_docs &lt;- tm_map(cleaned_binomial_test_docs, removePunctuation)</code></pre>
+<pre><code>## Warning in tm_map.SimpleCorpus(cleaned_binomial_test_docs, removePunctuation):
+## transformation drops documents</code></pre>
+<pre class="r"><code>cleaned_binomial_test_docs &lt;- tm_map(cleaned_binomial_test_docs,removeWords,stopwords(&#39;en&#39;))</code></pre>
+<pre><code>## Warning in tm_map.SimpleCorpus(cleaned_binomial_test_docs, removeWords, :
+## transformation drops documents</code></pre>
+<pre class="r"><code>cleaned_binomial_test_docs &lt;- tm_map(cleaned_binomial_test_docs,stemDocument)</code></pre>
+<pre><code>## Warning in tm_map.SimpleCorpus(cleaned_binomial_test_docs, stemDocument):
+## transformation drops documents</code></pre>
+<pre class="r"><code>binomial_test_dtm &lt;-DocumentTermMatrix(cleaned_binomial_test_docs,control=list(dictionary=observed_vocabulary))</code></pre>
+<pre class="r"><code>binomial_test_dtm</code></pre>
+<pre><code>## &lt;&lt;DocumentTermMatrix (documents: 787, terms: 17836)&gt;&gt;
+## Non-/sparse entries: 60018/13976914
+## Sparsity           : 100%
+## Maximal term length: 60
+## Weighting          : term frequency (tf)</code></pre>
+<pre class="r"><code>summary(binomial_model)</code></pre>
+<pre><code>##            Length  Class     Mode     
+## a0             100 -none-    numeric  
+## beta       1783600 dgCMatrix S4       
+## df             100 -none-    numeric  
+## dim              2 -none-    numeric  
+## lambda         100 -none-    numeric  
+## dev.ratio      100 -none-    numeric  
+## nulldev          1 -none-    numeric  
+## npasses          1 -none-    numeric  
+## jerr             1 -none-    numeric  
+## offset           1 -none-    logical  
+## classnames       2 -none-    character
+## call             4 -none-    call     
+## nobs             1 -none-    numeric</code></pre>
+<pre class="r"><code>binomial_test_dtm &lt;- data.matrix(binomial_test_dtm)
+
+binomial_probabilities &lt;- predict(binomial_model,binomial_test_dtm, s=binomial_model$lambda,type=&#39;response&#39;)
+
+binomial_predictions &lt;- ifelse(
+binomial_probabilities&gt;0.5,
+1,
+0
+)
+
+binomial_test_labels &lt;- (
+binomial_test_labels == &#39;comp.graphics&#39;
+) * 1
+
+binomial_classification_error &lt;- mean(
+binomial_predictions != binomial_test_labels
+)
+print(paste(&#39;Accuracy&#39;,1-binomial_classification_error))</code></pre>
+<pre><code>## [1] &quot;Accuracy 0.487814485387548&quot;</code></pre>
+<pre class="r"><code>cleaned_topic_docs &lt;- tm_map(topic_docs, tolower)
+cleaned_topic_docs &lt;- tm_map(cleaned_topic_docs, removePunctuation)
+cleaned_topic_docs &lt;- tm_map(cleaned_topic_docs, removeWords, stopwords(&#39;en&#39;))
+topic_dtm &lt;- DocumentTermMatrix(cleaned_topic_docs)
+findFreqTerms(
+topic_dtm,
+lowfreq=100
+)</code></pre>
+<pre><code>##  [1] &quot;available&quot;   &quot;code&quot;        &quot;email&quot;       &quot;fax&quot;         &quot;information&quot;
+##  [6] &quot;may&quot;         &quot;need&quot;        &quot;one&quot;         &quot;please&quot;      &quot;point&quot;      
+## [11] &quot;programs&quot;    &quot;software&quot;    &quot;subject&quot;     &quot;system&quot;      &quot;thanks&quot;     
+## [16] &quot;video&quot;       &quot;will&quot;        &quot;work&quot;        &quot;etc&quot;         &quot;want&quot;       
+## [21] &quot;also&quot;        &quot;anyone&quot;      &quot;article&quot;     &quot;bit&quot;         &quot;can&quot;        
+## [26] &quot;dont&quot;        &quot;files&quot;       &quot;find&quot;        &quot;ftp&quot;         &quot;just&quot;       
+## [31] &quot;think&quot;       &quot;time&quot;        &quot;used&quot;        &quot;using&quot;       &quot;version&quot;    
+## [36] &quot;well&quot;        &quot;writes&quot;      &quot;like&quot;        &quot;looking&quot;     &quot;systems&quot;    
+## [41] &quot;university&quot;  &quot;file&quot;        &quot;image&quot;       &quot;ive&quot;         &quot;program&quot;    
+## [46] &quot;color&quot;       &quot;get&quot;         &quot;see&quot;         &quot;format&quot;      &quot;graphics&quot;   
+## [51] &quot;number&quot;      &quot;use&quot;         &quot;help&quot;        &quot;know&quot;        &quot;data&quot;       
+## [56] &quot;display&quot;     &quot;good&quot;        &quot;images&quot;      &quot;problem&quot;     &quot;two&quot;        
+## [61] &quot;computer&quot;    &quot;much&quot;        &quot;windows&quot;     &quot;free&quot;        &quot;package&quot;    
+## [66] &quot;many&quot;        &quot;new&quot;         &quot;gif&quot;         &quot;jpeg&quot;        &quot;points&quot;     
+## [71] &quot;line&quot;        &quot;send&quot;</code></pre>
+<pre class="r"><code>findAssocs(
+topic_dtm,
+&#39;software&#39;,
+corlimit=0.75 # the correlation limit (between 0 and 1)
+)</code></pre>
+<pre><code>## $software
+##           aside    lastmodified             can           image             605 
+##            0.90            0.90            0.89            0.88            0.88 
+##           among         maximum           users        requires        floating 
+##            0.86            0.86            0.85            0.84            0.84 
+##       available         formats         modules       developed          images 
+##            0.83            0.83            0.83            0.82            0.82 
+##            also       interface          source         version            free 
+##            0.81            0.80            0.80            0.80            0.80 
+##        supports         highend          system            user         display 
+##            0.80            0.80            0.79            0.79            0.79 
+##       macintosh        accuracy        defining    instructions        performs 
+##            0.79            0.79            0.79            0.79            0.79 
+##           steps            code             pcs        hardware          number 
+##            0.79            0.78            0.78            0.78            0.78 
+##             use    manipulation        includes compsourcesmisc exportlcsmitedu 
+##            0.78            0.78            0.78            0.78            0.78 
+##       filtering       different            full           pixel         details 
+##            0.78            0.77            0.77            0.77            0.77 
+##      accomplish            blur     downloading         enlarge         factors 
+##            0.77            0.77            0.77            0.77            0.77 
+##           ghost        identify       initially        macpaint       pcrelated 
+##            0.77            0.77            0.77            0.77            0.77 
+##          plugin         ranging     recommended    standardized          stands 
+##            0.77            0.77            0.77            0.77            0.77 
+##         starter           storm         whereas            used            runs 
+##            0.77            0.77            0.77            0.76            0.76 
+##           sites             set        provides    applications           color 
+##            0.76            0.76            0.76            0.75            0.75 
+##       sequences          weekly 
+##            0.75            0.75</code></pre>
 
 
 
