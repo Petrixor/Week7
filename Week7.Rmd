@@ -15,14 +15,285 @@ knitr::opts_chunk$set(echo = TRUE)
 #install.packages('glmnet')
 library(tm)
 library(glmnet)
+library(SnowballC)
 ```
 
 ```{r}
+#unzip("20news-data.zip")
 topic_docs <- Corpus(
 DirSource(
 '20news-train/comp.graphics',
 encoding='UTF-8'  # specifies the text encoding the files are saved with
   )
 )
+```
+
+```{r}
+summary(topic_docs[1:5])
+```
+
+```{r}
+inspect(topic_docs[[1]])
+```
+
+```{r}
+topic_docs[[1]]$content
+```
+
+```{r}
+topic_2_docs <- Corpus(
+DirSource(
+'20news-train/rec.motorcycles',
+encoding='UTF-8' # specifies the text encoding the files are saved with
+)
+  )
+```
+
+```{r}
+binomial_docs <- c(
+as.list(topic_docs), # we need to convert the Corpus to a list to combine them properly
+as.list(topic_2_docs)
+)
+```
+
+```{r}
+labels_1 <- replicate(length(topic_docs), 'comp.graphics')
+labels_2 <- replicate(length(topic_2_docs), 'rec.motorcycles')
+binomial_labels <- c(labels_1, labels_2)
+```
+
+```{r}
+length(binomial_docs) == length(binomial_labels)
+```
+
+```{r}
+example_doc <- binomial_docs[["38487"]]
+print(example_doc)
+```
+
+```{r}
+tokens <- Boost_tokenizer(example_doc)
+summary(tokens)
+print(tokens)
+```
+
+```{r}
+tokens2 <- MC_tokenizer(example_doc)
+summary(tokens2)
+print(tokens2)
+```
+
+
+```{r}
+removePunctuation(example_doc)
+```
+
+```{r}
+removePunctuation(tokens)
+```
+
+```{r}
+stops <- stopwords('en')
+print(stops)
+```
+
+```{r}
+removeWords(example_doc, stops)
+```
+
+```{r}
+tolower(example_doc)
+```
+
+```{r}
+removeWords(
+tolower(example_doc),
+stops
+)
+```
+
+```{r}
+removeWords(tokens, stops)
+```
+
+```{r}
+stemDocument(example_doc)
+```
+
+```{r}
+library(dplyr)
+```
+
+```{r}
+new_example_doc <- example_doc %>% removePunctuation() %>% tolower()
+new_example_doc <- removeWords(new_example_doc, stops)
+gsub("[\r\n]", " ", new_example_doc)
+```
+
+```{r}
+binomial_docs <- Corpus(VectorSource(binomial_docs))
+binomial_docs
+```
+
+```{r}
+cleaned_binomial_docs <- tm_map(
+binomial_docs, # the collection of documents to process
+removeWords, # the function to apply to each document
+stopwords('en') # any additional arguments to pass to the function being called
+)
+#We can use this, then, to create a fully preprocessed copy of all of our documents.
+# Start with lowercasing
+cleaned_binomial_docs <- tm_map(
+binomial_docs,
+tolower
+)
+# Then remove punctuation
+cleaned_binomial_docs <- tm_map(
+cleaned_binomial_docs, # we want to stack on top of the previous preprocessing!
+removePunctuation
+)
+# Then remove stopwords
+cleaned_binomial_docs <- tm_map(
+cleaned_binomial_docs,
+removeWords,
+stopwords('en')
+)
+# And finally stem
+cleaned_binomial_docs <- tm_map(
+cleaned_binomial_docs,
+stemDocument
+)
+```
+
+```{r}
+cleaned_binomial_docs
+```
+
+```{r}
+binomial_dtm <- DocumentTermMatrix(
+cleaned_binomial_docs
+)
+binomial_dtm
+```
+
+```{r}
+inspect(binomial_dtm[1:3,])
+```
+
+```{r}
+doc_lengths <- lapply( # applies a function across each element of a list
+as.list(cleaned_binomial_docs),
+nchar # count the length of a string
+)
+doc_lengths <- unlist(doc_lengths) # get rid of the structure that lapply() creates
+quantile(doc_lengths)
+
+```
+
+```{r}
+binomial_dtm_binary <- DocumentTermMatrix(
+cleaned_binomial_docs,
+control=list(
+weighting=weightBin
+  )
+)
+```
+
+```{r}
+inspect(binomial_dtm_binary[1:3,])
+```
+
+```{r}
+binomial_dtm_tfidf <- DocumentTermMatrix(
+cleaned_binomial_docs,
+control=list(
+weighting=weightTfIdf
+  )
+)
+inspect(binomial_dtm_tfidf[1:3,])
+```
+
+```{r}
+removeSparseTerms(binomial_dtm, 0.98)
+```
+
+```{r}
+removeSparseTerms(binomial_dtm, 0.994)
+```
+
+```{r}
+observed_vocabulary <- unlist(binomial_dtm$dimnames)
+
+binomial_train_dtm <- DocumentTermMatrix(cleaned_binomial_docs,control=list(dictionary=observed_vocabulary))
+
+binomial_train_labels <- (binomial_labels == 'comp.graphics')*1
+
+binomial_model <- glmnet(binomial_train_dtm,binomial_train_labels,family='binomial')
+
+```
+
+```{r}
+topic_1_test_docs <- Corpus(
+DirSource('20news-test/comp.graphics',
+encoding='UTF-8'))
+```
+
+
+```{r}
+topic_2_test_docs <-Corpus(DirSource('20news-test/rec.motorcycles',encoding='UTF-8'))
+
+binomial_test_docs <-c(as.list(topic_1_test_docs),as.list(topic_2_test_docs))
+
+binomial_test_docs <- Corpus(VectorSource(binomial_test_docs))
+```
+
+
+```{r}
+labels_test_1 <- replicate(length(topic_1_test_docs),'comp.graphics')
+
+labels_test_2 <- replicate(length(topic_2_test_docs),'rec.motorcycle')
+```
+
+
+```{r}
+binomial_test_labels <- c(labels_test_1, labels_test_2)
+
+cleaned_binomial_test_docs <- tm_map(binomial_test_docs, tolower)
+
+cleaned_binomial_test_docs <- tm_map(cleaned_binomial_test_docs, removePunctuation)
+
+cleaned_binomial_test_docs <- tm_map(cleaned_binomial_test_docs,removeWords,stopwords('en'))
+
+cleaned_binomial_test_docs <- tm_map(cleaned_binomial_test_docs,stemDocument)
+
+binomial_test_dtm <-DocumentTermMatrix(cleaned_binomial_test_docs,control=list(dictionary=observed_vocabulary))
+```
+```{r}
+binomial_test_dtm
+```
+```{r}
+summary(binomial_model)
+```
+
+```{r}
+binomial_test_dtm <- data.matrix(binomial_test_dtm)
+
+binomial_probabilities <- predict(binomial_model,binomial_test_dtm, s=binomial_model$lambda,type='response')
+
+binomial_predictions <- ifelse(
+binomial_probabilities>0.5,
+1,
+0
+)
+
+binomial_test_labels <- (
+binomial_test_labels == 'comp.graphics'
+) * 1
+
+binomial_classification_error <- mean(
+binomial_predictions != binomial_test_labels
+)
+print(paste('Accuracy',1-binomial_classification_error))
+
 ```
 
