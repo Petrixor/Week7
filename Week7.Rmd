@@ -1,0 +1,28 @@
+---
+title: "Week 7"
+author: "Yuqi Gao"
+date: "2022-11-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+#install.packages('tm')
+#install.packages('SnowballC')
+#install.packages('glmnet')
+library(tm)
+library(glmnet)
+```
+
+```{r}
+topic_docs <- Corpus(
+DirSource(
+'20news-train/comp.graphics',
+encoding='UTF-8'  # specifies the text encoding the files are saved with
+  )
+)
+```
+
